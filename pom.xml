@@ -6,7 +6,11 @@
 	<groupId>com.janita.redis</groupId>
 	<artifactId>boot-redis</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>jar</packaging>
+	<modules>
+		<module>redis-one</module>
+		<module>redis-two</module>
+	</modules>
+	<packaging>pom</packaging>
 
 	<name>boot-redis</name>
 	<description>Demo project for Spring Boot</description>
