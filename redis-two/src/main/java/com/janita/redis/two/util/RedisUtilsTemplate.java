@@ -81,7 +81,6 @@ public class RedisUtilsTemplate extends RedisTemplate<String, Serializable> {
      * 此方法存入的value为string序列化
      * @param key
      * @param value
-     * @param <T>
      */
     public void set(final String key,final String value){
         this.execute(new RedisCallback<Object>() {
@@ -117,6 +116,29 @@ public class RedisUtilsTemplate extends RedisTemplate<String, Serializable> {
                     throws DataAccessException {
                 connection.setEx(stringSerializer.serialize(key), seconds, value);
                 return null;
+            }
+        });
+    }
+
+
+    /**
+     * 从set中获取某个key的所有的值得列表<>set</>
+     * @param key
+     * @return
+     * Set<byte[]> sMembers(byte[] key);
+     */
+    public <T> List<T> sMembers(final String key){
+        return this.execute(new RedisCallback<List<T>>() {
+            @Override
+            public List<T> doInRedis(RedisConnection connection) throws DataAccessException {
+                byte[] keyBytes = stringSerializer.serialize(key);
+                Set<byte[]> set = connection.sMembers(keyBytes);
+                List<T> list = new ArrayList<>(set.size());
+                for (byte[] bytes : set){
+                    T t = (T) jdkSerializationSerializer.deserialize(bytes);
+                    list.add(t);
+                }
+                return list;
             }
         });
     }

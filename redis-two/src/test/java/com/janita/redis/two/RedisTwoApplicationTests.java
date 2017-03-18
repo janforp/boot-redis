@@ -8,6 +8,7 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -27,9 +28,16 @@ public class RedisTwoApplicationTests {
         user.setId(1);
         user.setName("Jan");
         user.setAge(25);
-      redisUtilsTemplate.setex("user",user,30000);
-      user = redisUtilsTemplate.getObj("user");
-      print(user);
+        redisUtilsTemplate.sAdd("ggg",user);
+
+        User user2 = new User();
+        user2.setAge(20);
+        user2.setName("JJJJJJ");
+        user2.setId(2);
+        redisUtilsTemplate.sAdd("ggg",user2);
+
+        List<User> users = redisUtilsTemplate.sMembers("ggg");
+        print(users.size());
     }
 
     @Test
@@ -50,6 +58,17 @@ public class RedisTwoApplicationTests {
         redisUtilsTemplate.set("string","字符串");
         print(redisUtilsTemplate.get("string"));
     }
+
+    @Test
+    public void testList(){
+        User user = new User();
+        user.setId(1);
+        user.setName("Jan");
+        user.setAge(25);
+
+
+    }
+
 
     public void print(Object param){
         System.out.println("*******"+param);
