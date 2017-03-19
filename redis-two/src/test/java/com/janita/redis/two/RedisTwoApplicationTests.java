@@ -2,14 +2,14 @@ package com.janita.redis.two;
 
 import com.janita.redis.two.bean.Shop;
 import com.janita.redis.two.bean.User;
+import com.janita.redis.two.util.RedisUtils;
 import com.janita.redis.two.util.RedisUtilsTemplate;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import javax.annotation.Resource;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Created by Janita on 2017/3/14 0014
@@ -20,57 +20,146 @@ import java.util.UUID;
 public class RedisTwoApplicationTests {
 
     @Resource(name = "redisTemplate")
-    private RedisUtilsTemplate redisUtilsTemplate;
-
-    @Test
-    public void testRedis(){
-        User user = new User();
-        user.setId(1);
-        user.setName("Jan");
-        user.setAge(25);
-        redisUtilsTemplate.sAdd("ggg",user);
-
-        User user2 = new User();
-        user2.setAge(20);
-        user2.setName("JJJJJJ");
-        user2.setId(2);
-        redisUtilsTemplate.sAdd("ggg",user2);
-
-        List<User> users = redisUtilsTemplate.sMembers("ggg");
-        print(users.size());
-    }
-
-    @Test
-    public void testShop(){
-        Shop shop = new Shop();
-        shop.setId(UUID.randomUUID().toString());
-        shop.setName("全家");
-        shop.setAddress("萧山");
-        shop.setRemark("日本连锁店");
-
-        redisUtilsTemplate.setex("shop",shop,5);
-
-        print(redisUtilsTemplate.getObj("shop"));
-    }
-
-    @Test
-    public void testString(){
-        redisUtilsTemplate.set("string","字符串");
-        print(redisUtilsTemplate.get("string"));
-    }
-
-    @Test
-    public void testList(){
-        User user = new User();
-        user.setId(1);
-        user.setName("Jan");
-        user.setAge(25);
-
-
-    }
-
+    private RedisUtilsTemplate template;
 
     public void print(Object param){
         System.out.println("*******"+param);
     }
+    private static final String KEY_STRING = "strKey";
+    private static final String KEY_OBJECT = "objectKey";
+
+    @Test
+    public void testSetKeyOfString(){
+        RedisUtils.setKeyOfString(template,KEY_STRING,"string");
+    }
+
+    @Test
+    public void testGetStringOfKey(){
+        print(RedisUtils.getStringOfKey(template,KEY_STRING));
+    }
+
+    @Test
+    public void testSetObjectOfKey(){
+        User user = new User();
+        user.setId(1);
+        user.setAge(20);
+        user.setName("朱晨剑");
+
+        User user1 = new User();
+        user1.setId(2);
+        user1.setAge(18);
+        user1.setName("朱晨利");
+
+        List<User> list = new ArrayList<>();
+        list.add(user);
+        list.add(user1);
+
+        RedisUtils.setKeyOfObject(template,KEY_OBJECT,list);
+    }
+
+    @Test
+    public void testGetObjectOfKey(){
+        print(RedisUtils.getObjectOfKey(template,KEY_OBJECT));
+    }
+
+    @Test
+    public void testDeleteKey(){
+        RedisUtils.deleteKey(template,KEY_OBJECT);
+    }
+
+    @Test
+    public void testDeleteKeys(){
+        Set<String> keys = new HashSet<>();
+        keys.add(KEY_OBJECT);
+        keys.add(KEY_STRING);
+        RedisUtils.deleteKeys(template,keys);
+    }
+
+    @Test
+    public void testIsKeyExists(){
+        print(RedisUtils.isKeyExists(template,KEY_OBJECT));
+    }
+
+    @Test
+    public void testExpire(){
+        RedisUtils.setExpire(template,KEY_OBJECT,500);
+    }
+
+    @Test
+    public void testGetExpire(){
+        print(RedisUtils.getExpireSeconds(template,KEY_OBJECT));
+    }
+
+    @Test
+    public void testPersist(){
+        print(RedisUtils.persistKey(template,KEY_OBJECT));
+    }
+
+    @Test
+    public void type(){
+        print(RedisUtils.getTypeOfKey(template,KEY_OBJECT));
+    }
+
+    @Test
+    public void getSetString(){
+        print(RedisUtils.getSetString(template,"jan","new Jan"));
+    }
+
+    @Test
+    public void getSetObject(){
+        Shop old = new Shop();
+        old.setId("1");
+        old.setName("商店");
+        old.setAddress("地址");
+        old.setRemark("不备注");
+        RedisUtils.setKeyOfObject(template,"shop",old);
+
+        Shop ne = new Shop();
+        ne.setRemark("bz");
+        ne.setAddress("address");
+        ne.setId("2");
+
+        print(RedisUtils.getSetObject(template,"shop",ne));
+        print(RedisUtils.getObjectOfKey(template,"shop"));
+
+    }
+
+    @Test
+    public void mSetStr(){
+        Map<String,String> map = new HashMap<>();
+        map.put("a","aaaa");
+        map.put("b","bbbbb");
+        RedisUtils.setManyKeysString(template,map);
+
+        print(RedisUtils.getManyKeysString(template,map.keySet()));
+    }
+
+    @Test
+    public void mSetObj(){
+        Shop old = new Shop();
+        old.setId("1");
+        old.setName("商店");
+        old.setAddress("地址");
+        old.setRemark("不备注");
+        RedisUtils.setKeyOfObject(template,"shop",old);
+
+        Shop ne = new Shop();
+        ne.setRemark("bz");
+        ne.setAddress("address");
+        ne.setId("2");
+
+        Map<String,Shop> map = new HashMap<>();
+        map.put("s1",old);
+        map.put("s2",ne);
+        RedisUtils.setManyKeysObject(template,map);
+
+        print(RedisUtils.getManyKeysObject(template,map.keySet()));
+    }
+
+    @Test
+    public void append(){
+        print(RedisUtils.append(template,"s1","append"));
+        print(RedisUtils.getObjectOfKey(template,"s1"));
+    }
+
 }

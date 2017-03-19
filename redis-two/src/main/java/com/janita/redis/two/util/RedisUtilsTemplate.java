@@ -868,6 +868,122 @@ public class RedisUtilsTemplate extends RedisTemplate<String, Serializable> {
         });
     }
 
+    /**
+     * 判断key是否存在
+     * @param key
+     * @return
+     */
+    public boolean isKeyExists(final String key){
+        return this.execute(new RedisCallback<Boolean>() {
+            @Override
+            public Boolean doInRedis(RedisConnection connection) throws DataAccessException {
+                return connection.exists(stringSerializer.serialize(key));
+            }
+        });
+    }
 
+    /**
+     * 为key设置过期时间
+     * @param key
+     * @param seconds   秒
+     * @return
+     */
+    public boolean expire(final String key, final long seconds){
+        return this.execute(new RedisCallback<Boolean>() {
+            @Override
+            public Boolean doInRedis(RedisConnection connection) throws DataAccessException {
+                return connection.expire(stringSerializer.serialize(key),seconds);
+            }
+        });
+    }
 
+    /**
+     *把key的旧值替换为new string,返回old string
+     * @param key
+     * @param value
+     * @return
+     */
+    public String getSetString(final String key, final String value){
+       return this.execute(new RedisCallback<String>() {
+           @Override
+           public String doInRedis(RedisConnection connection) throws DataAccessException {
+               byte[] old = connection.getSet(stringSerializer.serialize(key),stringSerializer.serialize(value));
+               return stringSerializer.deserialize(old);
+           }
+       }) ;
+    }
+
+    /**
+     *把key的旧值替换为new object,返回旧old object
+     * @param key
+     * @param value
+     * @param <T>
+     * @return
+     */
+    public <T> T getSetObject(final String key, final T value) {
+        return this.execute(new RedisCallback<T>() {
+            @Override
+            public T doInRedis(RedisConnection connection) throws DataAccessException {
+                byte[] old =connection.getSet(stringSerializer.serialize(key),jdkSerializationSerializer.serialize(value));
+                return (T)jdkSerializationSerializer.deserialize(old);
+            }
+        }) ;
+    }
+
+    /**
+     * 为多个key设置他们的string value
+     * @param pairs
+     */
+    public Object mSetString(final Map<String, String> pairs) {
+
+        return this.execute(new RedisCallback<Object>() {
+            @Override
+            public Object doInRedis(RedisConnection connection) throws DataAccessException {
+                Map<byte[],byte[]> tuple = new HashMap<byte[], byte[]>();
+                Set<String> keySet = pairs.keySet();
+                for (String key : keySet){
+                    String value = pairs.get(key);
+                    tuple.put(stringSerializer.serialize(key),stringSerializer.serialize(value));
+                }
+                connection.mSet(tuple);
+                return null;
+            }
+        });
+    }
+
+    /**
+     * 为多个key设置他们的object value
+     * @param pairs
+     * @param <T>
+     * @return
+     */
+    public <T> Object mSetObject(final Map<String ,T > pairs){
+        return this.execute(new RedisCallback<Object>() {
+            @Override
+            public Object doInRedis(RedisConnection connection) throws DataAccessException {
+                Map<byte[],byte[]> tuple = new HashMap<byte[], byte[]>();
+                Set<String> keySet = pairs.keySet();
+                for (String key : keySet){
+                    T value = pairs.get(key);
+                    tuple.put(stringSerializer.serialize(key),jdkSerializationSerializer.serialize(value));
+                }
+                connection.mSet(tuple);
+                return null;
+            }
+        });
+    }
+
+    /**
+     * 为key的string值的后面添加appendStr
+     * @param key
+     * @param appendStr
+     */
+    public Long appendToStringValue(final String key, final String appendStr) {
+        return this.execute(new RedisCallback<Long>() {
+            @Override
+            public Long doInRedis(RedisConnection connection) throws DataAccessException {
+                return connection.append(stringSerializer.serialize(key),stringSerializer.serialize(appendStr));
+            }
+        });
+    }
 }
