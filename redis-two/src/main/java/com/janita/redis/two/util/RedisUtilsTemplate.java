@@ -341,6 +341,21 @@ public class RedisUtilsTemplate extends RedisTemplate<String, Serializable> {
     }
 
     /**
+     * 判断某个hash中的field是否存在
+     * @param key
+     * @param field
+     * @return
+     */
+    public Boolean hashExists(final String key,final String field){
+        return this.execute(new RedisCallback<Boolean>() {
+            @Override
+            public Boolean doInRedis(RedisConnection connection) throws DataAccessException {
+                return connection.hExists(stringSerializer.serialize(key),stringSerializer.serialize(field));
+            }
+        });
+    }
+
+    /**
      * 从sortedSet中取start-end元素的member
      * @param key
      * @return
@@ -986,4 +1001,84 @@ public class RedisUtilsTemplate extends RedisTemplate<String, Serializable> {
             }
         });
     }
+
+    /**
+     * 获取hash中的所有字段+值的集合
+     * @param key
+     * @param <T>
+     * @return
+     */
+    public <T> Map<String,T> hashGetAll(final String key) {
+        return this.execute(new RedisCallback<Map<String, T>>() {
+            @Override
+            public Map<String, T> doInRedis(RedisConnection connection) throws DataAccessException {
+                Map<byte[],byte[]> map = connection.hGetAll(stringSerializer.serialize(key));
+                Set<byte[]> keys = map.keySet();
+                Map<String,T> result = new HashMap<String, T>(keys.size());
+                for (byte[] oneKey : keys){
+                    byte[] oneValue = map.get(oneKey);
+                    result.put(stringSerializer.deserialize(oneKey),(T)jdkSerializationSerializer.deserialize(oneValue));
+                }
+                return result;
+            }
+        });
+    }
+
+    /**
+     * 获取hash表中的所有fields
+     * @param key
+     * @return
+     */
+    public Set<String> hashKeys(final String key){
+        return this.execute(new RedisCallback<Set<String>>() {
+            @Override
+            public Set<String> doInRedis(RedisConnection connection) throws DataAccessException {
+                Set<byte[]> set = connection.hKeys(stringSerializer.serialize(key));
+                Set<String> fields = new HashSet<String>();
+                for (byte[] fieldByte : set){
+                    fields.add(stringSerializer.deserialize(fieldByte));
+                }
+                return fields;
+            }
+        });
+    }
+
+    /**
+     * 获取hash中字段的总数
+     * @param key
+     * @return
+     */
+    public Long hashLen(final String key){
+        return this.execute(new RedisCallback<Long>() {
+            @Override
+            public Long doInRedis(RedisConnection connection) throws DataAccessException {
+                return connection.hLen(stringSerializer.serialize(key));
+            }
+        });
+    }
+
+    /**
+     * 同时将多个 field-value (字段-值)对设置到哈希表中。
+     * @param key
+     * @param pairs
+     * @param <T>
+     * @return
+     */
+    public <T> Object hashMSet(final String key, final Map<String,T> pairs){
+        return this.execute(new RedisCallback<Object>() {
+            @Override
+            public Object doInRedis(RedisConnection connection) throws DataAccessException {
+                Map<byte[],byte[]> map = new HashMap<byte[], byte[]>(pairs.size());
+                Set<String> fields = pairs.keySet();
+                for (String field : fields){
+                    byte[] fieldB = stringSerializer.serialize(field);
+                    byte[] tB = jdkSerializationSerializer.serialize(pairs.get(field));
+                    map.put(fieldB,tB);
+                }
+                connection.hMSet(stringSerializer.serialize(key),map);
+                return null;
+            }
+        });
+    }
+
 }

@@ -162,4 +162,52 @@ public class RedisTwoApplicationTests {
         print(RedisUtils.getObjectOfKey(template,"s1"));
     }
 
+    @Test
+    public void hashSet(){
+        Shop ne = new Shop();
+        ne.setRemark("bz");
+        ne.setAddress("address");
+        ne.setId("2");
+
+        print(RedisUtils.hSet(template,"hash","2",ne));
+        print(RedisUtils.hSet(template,"hash","3","是的发生的发生的范范的"));
+        print(RedisUtils.hGet(template,"hash","3"));
+
+
+        User user = new User();
+        user.setId(1);
+        user.setAge(20);
+        user.setName("朱晨剑");
+
+        print(RedisUtils.hSet(template,"hash","4",user));
+        print(RedisUtils.hGet(template,"hash","4"));
+
+        RedisUtils.hSet(template,"hash","5",100);
+        print(RedisUtils.hGet(template,"hash","5"));
+    }
+
+    @Test
+    public void testHDel(){
+//        RedisUtils.hDelete(template,"hash","5");
+        print(RedisUtils.hExists(template,"hash","5"));
+        print(RedisUtils.hGetAll(template,"hash"));
+    }
+    @Test
+    public void testHGetAll(){
+        RedisUtils.hSet(template,"hash","6","80");
+        print(RedisUtils.hKeys(template,"hash"));
+        print(RedisUtils.hLen(template,"hash"));
+    }
+
+    @Test
+    public void hMSet(){
+        Map<String,Object> map = new HashMap<>();
+        map.put("1","dsfsdfsdf");
+        map.put("2",new User());
+        map.put("3","你好");
+
+        RedisUtils.hMSet(template,"hash",map);
+
+        print(RedisUtils.hGetAll(template,"hash"));
+    }
 }

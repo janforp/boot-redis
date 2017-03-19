@@ -5,6 +5,12 @@ import java.util.Set;
 
 /**
  * Created by Janita on 2017-03-18 21:32
+ * @see org.springframework.data.redis.connection.RedisStringCommands
+ * @see org.springframework.data.redis.connection.RedisHashCommands
+ * @see org.springframework.data.redis.connection.RedisSetCommands
+ * @see org.springframework.data.redis.connection.RedisListCommands
+ * @see org.springframework.data.redis.connection.RedisKeyCommands
+ * @see org.springframework.data.redis.connection.RedisZSetCommands
  */
 public class RedisUtils {
     /**
@@ -166,6 +172,7 @@ public class RedisUtils {
      * @param template
      * @param pairs
      * @param <T>
+     * @see org.springframework.data.redis.connection.RedisStringCommands
      */
     public static <T> void setManyKeysObject(RedisUtilsTemplate template,Map<String,T> pairs){
         template.mSetObject(pairs);
@@ -176,6 +183,7 @@ public class RedisUtils {
      * @param template
      * @param keys
      * @param <T>
+     * @see org.springframework.data.redis.connection.RedisStringCommands
      * @return
      */
     public static <T> Map<String,T> getManyKeysObject(RedisUtilsTemplate template,Set<String> keys){
@@ -192,6 +200,7 @@ public class RedisUtils {
      * @param template
      * @param key
      * @param appendStr
+     * @see org.springframework.data.redis.connection.RedisStringCommands
      */
     public static Long append(RedisUtilsTemplate template,String key,String appendStr){
         return template.appendToStringValue(key,appendStr);
@@ -200,6 +209,96 @@ public class RedisUtils {
     /****************string start***************/
 
     /****************hash start***************/
+
+    /**
+     * 把一个object设置到hash的key中
+     * @param template
+     * @param key
+     * @param field
+     * @param value
+     * @param <T>
+     * @see org.springframework.data.redis.connection.RedisHashCommands
+     */
+    public static <T> Boolean hSet(RedisUtilsTemplate template, String key, String field, T value){
+        return template.hashSet(key,field,value);
+    }
+
+    /**
+     * 从hash key中获取field所对应的value
+     * @param template
+     * @param key
+     * @param field
+     * @param <T>
+     * @see org.springframework.data.redis.connection.RedisHashCommands
+     * @return
+     */
+    public static <T> T hGet(RedisUtilsTemplate template, String key, String field){
+        return template.hashGet(key,field);
+    }
+
+    /**
+     * 删除key hash中某个field
+     * @param template
+     * @param key
+     * @param field
+     */
+    public static Long hDelete(RedisUtilsTemplate template,String key,String field){
+        return template.hashDelete(key,field);
+    }
+
+    /**
+     * 判断某个hash中的field是否存在
+     * @param template
+     * @param key
+     * @param field
+     * @return
+     */
+    public static Boolean hExists(RedisUtilsTemplate template,String key,String field){
+        return template.hashExists(key,field);
+    }
+
+    /**
+     * 获取hash中的所有字段+值的集合
+     * @param template
+     * @param key
+     * @param <T>
+     * @return
+     */
+    public static <T> Map<String,T> hGetAll(RedisUtilsTemplate template,String key){
+        return template.hashGetAll(key);
+    }
+
+    /**
+     * 获取哈希表中的所有字段名。
+     * @param template
+     * @param key
+     * @return
+     */
+    public static Set<String> hKeys(RedisUtilsTemplate template,String key){
+        return template.hashKeys(key);
+    }
+
+    /**
+     * 获取哈希表中字段的数量。
+     * @param template
+     * @param key
+     * @return
+     */
+    public static Long hLen(RedisUtilsTemplate template,String key){
+        return template.hashLen(key);
+    }
+
+    /**
+     * 同时将多个 field-value (字段-值)对设置到哈希表中
+     * @param template
+     * @param key
+     * @param pairs
+     * @param <T>
+     */
+    public static <T> void hMSet(RedisUtilsTemplate template,String key,Map<String,T> pairs){
+        template.hashMSet(key,pairs);
+    }
+
 
 
 
