@@ -59,7 +59,8 @@ public class RedisTwoApplicationTests {
 
     @Test
     public void testGetObjectOfKey(){
-        print(RedisUtils.getObjectOfKey(template,KEY_OBJECT));
+        List<User> list = RedisUtils.getObjectOfKey(template,KEY_OBJECT);
+        print(list);
     }
 
     @Test
